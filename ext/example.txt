@@ -1,0 +1,26 @@
+ViewingRecord {
+    user: String
+    media: String
+    watchCount: Int
+    emotions: {Int:Emotion}
+}
+            {[1: 'Neutral'], [2: 'Angry']}
+
+User {
+    ID:String
+    name:String
+}
+
+Media {
+    URL:String
+    Title:String
+    Genre:String
+    RuntimeSec:Int
+    AvgEmotions: {Int:Emotion}
+}
+
+Emotion ENUM {
+    'Happy',
+    ...,
+    'N.D'
+}

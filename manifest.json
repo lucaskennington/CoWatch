@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "CoWatch",
+  "version": "1.0",
+  "description": "Watch with emotions",
+  "action": {
+    "default_popup": "ext/index.html"
+  },
+  "permissions": ["storage", "activeTab", "scripting", "contentSettings"],
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "http://127.0.0.1:3000/*"
+  ],
+  "content_scripts": [
+    {
+      "js": ["content.js"],
+      "matches": ["<all_urls>"],
+      "run_at": "document_end"
+    }
+  ]
+}

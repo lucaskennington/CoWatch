@@ -1,4 +1,4 @@
-ViewingRecord {
+View {
     user: String
     media: String
     watchCount: Int
@@ -11,7 +11,7 @@ User {
     name:String
 }
 
-Media {
+Video {
     URL:String
     Title:String
     Genre:String

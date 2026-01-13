@@ -4,7 +4,7 @@
   "version": "1.0",
   "description": "Watch with emotions",
   "action": {
-    "default_popup": "ext/index.html"
+    "default_popup": "ext/signup.html"
   },
   "permissions": ["storage", "activeTab", "scripting", "contentSettings"],
   "host_permissions": [

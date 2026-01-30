@@ -4,6 +4,20 @@ const username_input = document.getElementById('username-input')
 const password_input = document.getElementById('password-input')
 const repeat_password_input = document.getElementById('repeat-password-input')
 const error_message = document.getElementById('error-message')
+var currentUser = "";
+
+chrome.storage.local.get(["loggedInUser"])
+.then((result) => {
+    currentUser = result.loggedInUser;
+    error_message.innerText = currentUser;
+    console.log("Value is " + currentUser);
+    if (currentUser != null){
+        window.location.replace("cowatchMenu.html");
+    }
+})
+.catch((error) => {
+    console.log(error);
+});
 
 form.addEventListener('submit', async (e) => {
     let errors = []
@@ -32,7 +46,34 @@ form.addEventListener('submit', async (e) => {
             body: new URLSearchParams(formData).toString()
         })
         const result = await response.json();
+        if (result.success){
+            console.log(result.username)
+        } else {
+            error_message.innerText = "Problem creating new account"
+        }
 
+    } else {
+        e.preventDefault()
+        const formData = new FormData(form);
+        console.log(formData.entries);
+        response = await fetch('http://localhost:3000/existingUsers', {
+            method: "POST",
+            headers: {
+                "Content-Type":"application/x-www-form-urlencoded"
+            },
+            body: new URLSearchParams(formData).toString()
+        })
+        const result = await response.json();
+        if (result.success){
+            error_message.innerText = "";
+            chrome.storage.local.set({loggedInUser: result.currentUser})
+            .then(() => {
+                console.log("Value is set");
+                window.location.replace("cowatchMenu.html");
+            });
+        } else {
+            error_message.innerText = result.errorDetail;
+        }
     }
 })
 
@@ -74,6 +115,8 @@ function getLoginFormErrors(username, password){
         errors.push('Password is required')
         password_input.parentElement.classList.add('incorrect')
     }
+
+    return errors;
 }
 
 const allInputs = [firstname_input, username_input, password_input, repeat_password_input].filter(input => input != null)

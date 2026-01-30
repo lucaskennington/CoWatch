@@ -1,7 +1,5 @@
 function main() {
 
-
-
   var imageCapture;
   var currentFrame;
   var playing = false;

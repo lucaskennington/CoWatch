@@ -11,11 +11,11 @@ const viewSchema = new Schema({
         required: true
     },
     watchCount: {
-        type: Int32,
+        type: Number,
         required: true
     },
     emotions:{
-        type: {Int32, Int32}
+        type: [{timestamp: Number, emotion: String}]
     }
 }, {collection: ''});
 

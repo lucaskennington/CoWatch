@@ -4,18 +4,19 @@ const Schema = mongoose.Schema;
 const videoSchema = new Schema({
     url: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     title: {
         type: String,
         required: true
     },
     runtimeSec: {
-        type: Int32,
+        type: String,
         required: true
     },
     AvgEmotions:{
-        type: {Int32, Int32}
+        type: {String, String}
     },
     genre: {
         type: String

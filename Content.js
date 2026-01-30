@@ -1,20 +1,54 @@
 var started = false;
+// const emotion_colours = new Map ([
+//   ['Happy','rgba(255, 242, 3, 0.25)'],
+//   ['Sad','rgba(53, 3, 255, 0.1)'],
+//   ['Anger','rgba(255, 3, 3, 0.25)'],
+//   ['Surprise','rgba(255, 3, 251, 0.25)'],
+//   ['Disgust','rgba(27, 186, 6, 0.25)'],
+//   ['Fear','rgba(143, 14, 194, 0.25)'],
+//   ['Neutral','rgba(0, 0, 0, 0)']
+// ]);
+
 const emotion_colours = new Map ([
-  ['Happy','rgba(255, 242, 3, 0.25)'],
-  ['Sad','rgba(53, 3, 255, 0.1)'],
-  ['Anger','rgba(255, 3, 3, 0.25)'],
-  ['Surprise','rgba(255, 3, 251, 0.25)'],
-  ['Disgust','rgba(27, 186, 6, 0.25)'],
-  ['Fear','rgba(143, 14, 194, 0.25)'],
-  ['Neutral','rgba(0, 0, 0, 0)']
+  ['Happy','rgb(255, 242, 3)'],
+  ['Sad','rgb(53, 3, 255)'],
+  ['Anger','rgb(255, 3, 3)'],
+  ['Surprise','rgb(255, 3, 251)'],
+  ['Disgust','rgb(27, 186, 6)'],
+  ['Fear','rgb(143, 14, 194)'],
+  ['Neutral','rgb(255, 255, 255)']
 ]);
+
+// var styleElement = document.createElement('style');
+// styleElement.setAttribute('data-yt-extension', 'true');
+
+
+function changeColour(emotion){
+  newColour = emotion_colours.get(emotion);
+  console.log("Emotion received");
+  console.log(newColour);
+  document.querySelector('ytd-app').style.setProperty('background-color', newColour, 'important');
+}
+
+function videoDetails(){
+  const titleElement = document.getElementsByTagName("title")[0].innerHTML;
+  return titleElement;
+}
+
+function timeCheck() {
+  const videoElement = document.querySelector('video');
+  if (videoElement) {
+    currentTime = videoElement.currentTime;
+    finishedStatus = (currentTime >= videoElement.duration)
+    return {finished: finishedStatus, runtime: currentTime}
+  }
+}
 
 function playVideo() {
   // get the video element, and the skip button that YouTube renders
   const videoElement = document.querySelector('video');
   const skipButton = document.querySelector('button.ytp-ad-skip-button-modern');
 
-  // move current video time to the end and click the skip button
   if (videoElement) {
     if (videoElement.paused){
       videoElement.play();
@@ -24,7 +58,7 @@ function playVideo() {
       videoElement.pause();
     }
   }
-  return videoElement.paused;
+  return {pauseStatus: videoElement.paused, currentRunime: videoElement.currentTime, videoDuration: videoElement.duration};
 }
 
 function fullScreenVideo(){
@@ -62,6 +96,16 @@ function displayEmotion(emotion){
   })
 }
 
+function checkPaused(){
+  const videoElement = document.querySelector('video');
+  return videoElement.paused;
+}
+
+function getDuration(){
+  const videoElement = document.querySelector('video');
+  return videoElement.duration;
+}
+
 function main() {
   // listen to messages from the Chrome Extension APIs
   chrome.runtime.onMessage.addListener(
@@ -69,15 +113,27 @@ function main() {
       if (request.action == 'createOverlay'){
         //fullScreenVideo();
         createOverlay();
-        sendResponse("Overlay created")
+        sendResponse({})
       }
       if (request.action === 'playPause') {
-        const playing = !(playVideo());
-        sendResponse(playing);
+        const videoSpecs = (playVideo());
+        sendResponse(videoSpecs);
       }
       if (request.action === 'displayEmotion'){
-        displayEmotion(request.emotion);
-        sendResponse("Emotion displayed")
+        changeColour(request.emotion);
+        sendResponse("Emotion displayed");
+      }
+      if (request.action === 'timeCheck'){
+        sendResponse(timeCheck());
+      }
+      if (request.action === 'videoDetails'){
+        sendResponse(videoDetails());
+      }
+      if (request.action === 'checkPaused'){
+        sendResponse(checkPaused());
+      }
+      if (request.action === 'getDuration'){
+        sendResponse(getDuration());
       }
     }
   );

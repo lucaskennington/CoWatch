@@ -47,6 +47,22 @@ async function videoStats(tab, videoDuration) {
     } else {
       console.log(result.title)
     }
+
+  const checkData = new FormData;
+  checkData.append("videoTitle", videoUrl);
+  response = await fetch('http://localhost:3000/existingViews', {
+    method: "POST",
+    headers: {
+      "Content-Type":"application/x-www-form-urlencoded"
+    },
+    body: new URLSearchParams(checkData).toString()
+  })
+  const result2 = await response.json();
+    if (result2.success){
+      console.log(JSON.parse(result2))
+    } else {
+      console.log(JSON.parse(result2))
+    }
 }
 
 
@@ -80,12 +96,14 @@ async function mainLoop(timeStamp, duration, emotions, tab){
             result = await response.json();
             calculatedEmotion = result["emotion"];
             emotions.push({timestamp: timeStamp, emotion: calculatedEmotion});
+            displayEmotion(tab, calculatedEmotion);
             console.log(calculatedEmotion);
 
         } catch (error) {
             console.error(error.message);
             calculatedEmotion = prevEmotion;
             emotions.push({timestamp: timeStamp, emotion: calculatedEmotion});
+            displayEmotion(tab, calculatedEmotion);
         }
 
         console.log(calculatedEmotion);
@@ -95,16 +113,13 @@ async function mainLoop(timeStamp, duration, emotions, tab){
     .catch(error => function () {
       calculatedEmotion = prevEmotion
       emotions.push({timestamp: timeStamp, emotion: calculatedEmotion});
+      displayEmotion(tab, calculatedEmotion);
     });
 
     console.log(calculatedEmotion);
 
-    // 5. save and display emotion
-    
-    console.log("success")
-    emotionDisplayed = await chrome.tabs.sendMessage(tab.id, { action: 'displayEmotion', emotion: calculatedEmotion });
 
-    // 6. recursion
+    // 5. recursion
     timeStamp += 1
     if (timeStamp > duration) {
         console.log("Done");
@@ -134,6 +149,14 @@ async function mainLoop(timeStamp, duration, emotions, tab){
     }
 }
 
+async function displayEmotion(tab, calculatedEmotion){
+  console.log("success")
+  emotionDisplayed = await chrome.tabs.sendMessage(tab.id, { 
+    action: 'displayEmotion', 
+    emotion: calculatedEmotion
+  });
+}
+
 
 
 function main() {
@@ -155,6 +178,8 @@ function main() {
   const playButton = document.querySelector('.playPause');
   playButton.addEventListener('click', async () => {
     const [tab] = await chrome.tabs.query({ active: true });
+
+    overlay = await chrome.tabs.sendMessage(tab.id, { action: 'createOverlay'});
 
     duration = await chrome.tabs.sendMessage(tab.id, { action: 'getDuration' });
     videoStats(tab, duration);

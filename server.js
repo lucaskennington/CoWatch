@@ -99,6 +99,36 @@ app.post('/newUsers', async (req, res) => {
   .catch(error => res.send({success: false, errorDetail: error}))
 })
 
+app.post('/existingViews', async (req, res) => {
+  const videoData = req.body;
+  const videoTitle = videoData.videoTitle;
+
+  result = db.collection("views").find({video: videoTitle}, {user: 0, video: 0, watchCount: 0, emotions: 1})
+
+  finalEmotions = [];
+  result.toArray().then(allEmotions => {
+    console.log("a");
+    console.log(allEmotions);
+    
+    console.log("b");
+    if (allEmotions.length > 0){
+      listLength = allEmotions[0].length
+      for (let i = 0; i < listLength; i++){
+        finalEmotions.push([]);
+        allEmotions.forEach((elt) =>
+          finalEmotions[i].push(elt[i]));
+        }
+      console.log(finalEmotions);
+      res.send(JSON.stringify(finalEmotions));
+  }
+  
+  }
+  )
+  
+})
+
+
+
 app.post('/existingUsers', async (req, res) => {
   const userData = req.body;
   const username = userData.username;

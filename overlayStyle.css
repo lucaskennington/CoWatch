@@ -1,0 +1,15 @@
+
+#overlay {
+  position: fixed; /* Sit on top of the page content */
+  display: none; /* Hidden by default */
+  width: 100%; /* Full width (cover the whole page) */
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0);
+  z-index: 9999;
+  pointer-events: none;
+  clip-path: polygon(0 0, 0 var(--1), var(--2) var(--1), var(--3) var(--1), var(--3) var(--4), var(--2) var(--4), var(--2) var(--1), 0 var(--1), 0 100%, 100% 100%, 100% 0);
+}

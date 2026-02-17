@@ -166,7 +166,7 @@ function createOverlay(){
     alignItems: 'center',
     justifyContent: 'center',
     color: '#fff',
-    fontSize: '24px',
+
     cursor: 'pointer'
   })
 

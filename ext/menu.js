@@ -34,7 +34,7 @@ async function videoStats(tab, videoDuration) {
   videoData.append("title", videoTitle);
   videoData.append("runtimeSec", videoDuration);
 
-  response = await fetch('http://localhost:3000/newVideo', {
+  response = await fetch('https://api-cowatch.onrender.com/newVideo', {
     method: "POST",
     headers: {
       "Content-Type":"application/x-www-form-urlencoded"
@@ -50,7 +50,7 @@ async function videoStats(tab, videoDuration) {
 
   const checkData = new FormData;
   checkData.append("videoTitle", videoUrl);
-  response = await fetch('http://localhost:3000/existingViews', {
+  response = await fetch('https://api-cowatch.onrender.com/existingViews', {
     method: "POST",
     headers: {
       "Content-Type":"application/x-www-form-urlencoded"
@@ -129,7 +129,7 @@ async function mainLoop(timeStamp, duration, emotions, tab){
           viewData.append("video", tab.url);
           viewData.append("emotions", JSON.stringify(emotions));
 
-          response = await fetch('http://localhost:3000/logEmotion', {
+          response = await fetch('https://api-cowatch.onrender.com/logEmotion', {
           method: "POST",
           headers: {
             "Content-Type":"application/x-www-form-urlencoded"

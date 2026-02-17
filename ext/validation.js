@@ -38,7 +38,7 @@ form.addEventListener('submit', async (e) => {
         e.preventDefault()
         const formData = new FormData(form);
         console.log(formData.entries());
-        response = await fetch('http://localhost:3000/newUsers', {
+        response = await fetch('https://api-cowatch.onrender.com/newUsers', {
             method: "POST",
             headers: {
                 "Content-Type":"application/x-www-form-urlencoded"
@@ -56,7 +56,7 @@ form.addEventListener('submit', async (e) => {
         e.preventDefault()
         const formData = new FormData(form);
         console.log(formData.entries);
-        response = await fetch('http://localhost:3000/existingUsers', {
+        response = await fetch('https://api-cowatch.onrender.com/existingUsers', {
             method: "POST",
             headers: {
                 "Content-Type":"application/x-www-form-urlencoded"

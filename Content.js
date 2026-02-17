@@ -73,6 +73,18 @@ function fullScreenVideo(){
 function createOverlay(){
   const videoElement = document.querySelector('video');
   const rect = videoElement.getBoundingClientRect();
+  console.log(rect.top);
+  console.log(rect.bottom);
+  console.log(rect.left);
+  console.log(rect.right);
+
+  rectTop = rect.top.toString();
+  rectBottom = rect.bottom.toString();
+  rectLeft = rect.left.toString();
+  rectRight = rect.right.toString();
+  rectWidth = rect.width.toString();
+  rectHeight = rect.height.toString();
+
 
   const overlay = document.createElement("div");
   overlay.id = 'overlay1';
@@ -91,6 +103,10 @@ function createOverlay(){
     fontSize: '24px',
     cursor: 'pointer'
   })
+
+  //update to user display
+  overlay.style.width = rectLeft + "px";
+  overlay.style.height = rectBottom + "px";
 
 
   const overlay2 = document.createElement("div");
@@ -111,6 +127,10 @@ function createOverlay(){
     cursor: 'pointer'
   })
 
+  overlay2.style.left = rectLeft + "px";
+  overlay2.style.width = rectWidth + "px";
+  overlay2.style.height = rectTop + "px";
+
   const overlay3 = document.createElement("div");
   overlay3.id = 'overlay3';
   Object.assign(overlay3.style, {
@@ -129,6 +149,9 @@ function createOverlay(){
     cursor: 'pointer'
   })
 
+  overlay3.style.top = rectBottom + "px";
+  overlay3.style.width = rectRight + "px";
+
   const overlay4 = document.createElement("div");
   overlay4.id = 'overlay4';
   Object.assign(overlay4.style, {
@@ -146,6 +169,10 @@ function createOverlay(){
     fontSize: '24px',
     cursor: 'pointer'
   })
+
+  overlay4.style.left = rectRight + "px";
+
+
   // overlay.style.clipPath = "polygon(0 0, 0 ${rect.top}, ${rect.left} ${rect.top}, ${rect.right} ${rect.top}, ${rect.right} ${rect.bottom}, ${rect.left} ${rect.bottom}, ${rect.left} ${rect.top}, 0 ${rect.top}, 0 100%, 100% 100%, 100% 0)"
   // console.log(overlay.style.clipPath);
   // console.log(rect.width);

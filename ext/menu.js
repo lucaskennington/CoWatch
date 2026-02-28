@@ -7,7 +7,7 @@ chrome.storage.local.get(["loggedInUser"])
 .then((result) => {
     currentUser = result.loggedInUser;
     error_message.innerText = currentUser;
-    console.log("Value is " + currentUser);
+    console.log("Logged in: " + currentUser);
 })
 .catch((error) => {
     console.log(error);
@@ -42,11 +42,6 @@ async function videoStats(tab, videoDuration) {
     body: new URLSearchParams(videoData).toString()
   })
   const result = await response.json();
-    if (result.success){
-      console.log(result.title)
-    } else {
-      console.log(result.title)
-    }
 
   const checkData = new FormData;
   checkData.append("videoTitle", videoUrl);
@@ -57,23 +52,61 @@ async function videoStats(tab, videoDuration) {
     },
     body: new URLSearchParams(checkData).toString()
   })
-  const result2 = await response.json();
-    if (result2.success){
-      console.log(JSON.parse(result2))
-    } else {
-      console.log(JSON.parse(result2))
+  const resultBody = await response.json();
+  if (resultBody == "none"){
+    return null;
+  } else {
+    return resultBody;
+  }
+  
+}
+
+function calcMode(emotionList){
+  const freq = {};
+  emotionList.forEach(emotion => {
+    freq[emotion] = (freq[emotion] || 0) + 1;
+  });
+
+  let modes = [];
+  let highest = 0;
+
+  for(const emotion in freq){
+    const thisFreq = freq[emotion];
+    if (thisFreq > highest){
+      highest = thisFreq;
+      modes = [emotion];
     }
+    else if (thisFreq === highest){
+      modes.push(emotion);
+    }
+  }
+  if (modes.length > 1){
+    return modes[Math.floor(Math.random() * modes.length)];
+  }
+  else {
+    return modes[0];
+  }
 }
 
 
-
-async function mainLoop(timeStamp, duration, emotions, tab){
+async function mainLoop(timeStamp, duration, emotions, tab, avgEmotions, avgEmotionIndex){
+    
     // 1. Set Defaults
     var calculatedEmotion;
     var prevEmotion = 'Neutral';
     if (emotions.length > 0) {
         prevEmotion = emotions[emotions.length - 1]["emotion"];
     }
+    avgEmotion = null;
+    if (avgEmotions == null){
+      document.getElementById("rad2").checked = false;
+      document.getElementById("rad1").checked = true;
+      document.getElementById("noDataError").innerHTML = "No prior views for this video";
+    } else {
+      avgEmotion = avgEmotions[avgEmotionIndex];
+    }
+
+    const ownEmotions = document.getElementById("rad1").checked;
 
     // 2. Take Picture
     imageCapture.takePhoto()
@@ -96,28 +129,21 @@ async function mainLoop(timeStamp, duration, emotions, tab){
             result = await response.json();
             calculatedEmotion = result["emotion"];
             emotions.push({timestamp: timeStamp, emotion: calculatedEmotion});
-            displayEmotion(tab, calculatedEmotion);
-            console.log(calculatedEmotion);
+            displayEmotion(tab, calculatedEmotion, avgEmotion, ownEmotions);
 
         } catch (error) {
             console.error(error.message);
             calculatedEmotion = prevEmotion;
             emotions.push({timestamp: timeStamp, emotion: calculatedEmotion});
-            displayEmotion(tab, calculatedEmotion);
+            displayEmotion(tab, calculatedEmotion, avgEmotion, ownEmotions);
         }
-
-        console.log(calculatedEmotion);
-
 
     })
     .catch(error => function () {
       calculatedEmotion = prevEmotion
       emotions.push({timestamp: timeStamp, emotion: calculatedEmotion});
-      displayEmotion(tab, calculatedEmotion);
+      displayEmotion(tab, calculatedEmotion, avgEmotion, ownEmotions);
     });
-
-    console.log(calculatedEmotion);
-
 
     // 5. recursion
     timeStamp += 1
@@ -142,19 +168,30 @@ async function mainLoop(timeStamp, duration, emotions, tab){
     }
     else {
         setTimeout(function () {
-          let newEmotions = mainLoop(timeStamp, duration, emotions, tab);
+          let newEmotions = mainLoop(timeStamp, duration, emotions, tab, avgEmotions, avgEmotionIndex + 1);
           return newEmotions;
         }, 1000)
         
     }
 }
 
-async function displayEmotion(tab, calculatedEmotion){
-  console.log("success")
-  emotionDisplayed = await chrome.tabs.sendMessage(tab.id, { 
+async function displayEmotion(tab, calculatedEmotion, avgEmotion, ownEmotions){
+
+  if (ownEmotions){
+    console.log(calculatedEmotion);
+    emotionDisplayed = await chrome.tabs.sendMessage(tab.id, { 
+      action: 'displayEmotion', 
+      emotion: calculatedEmotion
+    });
+  }
+  else{
+    console.log(avgEmotion);
+    emotionDisplayed = await chrome.tabs.sendMessage(tab.id, { 
     action: 'displayEmotion', 
-    emotion: calculatedEmotion
+    emotion: avgEmotion
   });
+  }
+  
 }
 
 
@@ -179,15 +216,17 @@ function main() {
   playButton.addEventListener('click', async () => {
     const [tab] = await chrome.tabs.query({ active: true });
 
+    document.getElementById("rad1").disabled = true;
+    document.getElementById("rad2").disabled = true;
+
     overlay = await chrome.tabs.sendMessage(tab.id, { action: 'createOverlay'});
 
     duration = await chrome.tabs.sendMessage(tab.id, { action: 'getDuration' });
-    videoStats(tab, duration);
+    avgEmotions = await videoStats(tab, duration);
+
     
     videoStart = await chrome.tabs.sendMessage(tab.id, { action: 'playPause' });
-    loggedEmotions = mainLoop(0, duration, emotions, tab);
-    console.log("Test")
-    console.log(loggedEmotions);
+    loggedEmotions = mainLoop(0, duration, emotions, tab, avgEmotions, 0);
 
     
   })

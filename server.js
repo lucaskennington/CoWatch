@@ -27,6 +27,33 @@ db.once('open', () => {
     console.log('Connected to MongoDB');
 });
 
+function calcMode(emotionList){
+  const freq = {};
+  emotionList.forEach(emotion => {
+    freq[emotion] = (freq[emotion] || 0) + 1;
+  });
+
+  let modes = [];
+  let highest = 0;
+
+  for(const emotion in freq){
+    const thisFreq = freq[emotion];
+    if (thisFreq > highest){
+      highest = thisFreq;
+      modes = [emotion];
+    }
+    else if (thisFreq === highest){
+      modes.push(emotion);
+    }
+  }
+  if (modes.length > 1){
+    return modes[Math.floor(Math.random() * modes.length)];
+  }
+  else {
+    return modes[0];
+  }
+}
+
 app.post('/logEmotion', async(req, res) => {
   const viewData = req.body;
 
@@ -104,27 +131,48 @@ app.post('/existingViews', async (req, res) => {
   const videoData = req.body;
   const videoTitle = videoData.videoTitle;
 
-  result = db.collection("views").find({video: videoTitle}, {user: 0, video: 0, watchCount: 0, emotions: 1})
-
-  finalEmotions = [];
-  result.toArray().then(allEmotions => {
-    console.log("a");
+  dbSearch = db.collection("views").find({video: videoTitle}, {user: 0, video: 0, watchCount: 0, emotions: 1})
+  dbSearch.toArray().then(allEmotions => {
+    console.log("67")
     console.log(allEmotions);
-    
-    console.log("b");
+    console.log("67")
     if (allEmotions.length > 0){
-      listLength = allEmotions[0].length
-      for (let i = 0; i < listLength; i++){
-        finalEmotions.push([]);
-        allEmotions.forEach((elt) =>
-          finalEmotions[i].push(elt[i]));
+      console.log(allEmotions[0]);
+
+      justEmotions = [];
+      for (i = 0; i < allEmotions.length; i++){
+        justEmotions.push(allEmotions[i]['emotions']);
+      }
+
+      emotionByTime = [];
+      for(i = 0; i < justEmotions[0].length; i++){
+        emotionByTime.push([]);
+        for (j = 0; j < justEmotions.length; j++){
+          if(i < justEmotions[j].length){
+            emotionByTime[i].push(justEmotions[j][i]['emotion']);
+          } else {
+            emotionByTime[i].push(emotionByTime[i - 1]);
+          }
         }
-      console.log(finalEmotions);
-      res.send(JSON.stringify(finalEmotions));
+      }
+
+      avgEmotions = [];
+      for (i = 0; i < emotionByTime.length; i++){
+        avgEmotions.push(calcMode(emotionByTime[i]));
+      }
+
+      console.log(avgEmotions);
+      res.send(JSON.stringify(avgEmotions));
+    } else {
+      console.log("none");
+      res.send(JSON.stringify("none"));
+    }
+    
+  }).catch(error => {
+    console.log("error");
+    res.send(JSON.stringify("none"));
   }
-  
-  }
-  )
+  );
   
 })
 

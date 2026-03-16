@@ -220,6 +220,23 @@ function checkPaused(){
   return videoElement.paused;
 }
 
+function checkEnded(){
+  const videoElement = document.querySelector('video');
+  return videoElement.ended;
+}
+
+function checkAd(){
+  const presentAd = document.getElementsByClassName('.ytp-ad-module');
+  console.log("ads:");
+  console.log(presentAd.length);
+  if (presentAd.length == 0){
+    return false;
+  } else {
+    console.log(presentAd);
+    return true;
+  }
+}
+
 function getDuration(){
   const videoElement = document.querySelector('video');
   return videoElement.duration;
@@ -253,6 +270,12 @@ function main() {
       }
       if (request.action === 'checkPaused'){
         sendResponse(checkPaused());
+      }
+      if (request.action === 'checkEnded'){
+        sendResponse(checkEnded());
+      }
+      if (request.action === 'checkAd'){
+        sendResponse(checkAd());
       }
       if (request.action === 'getDuration'){
         sendResponse(getDuration());

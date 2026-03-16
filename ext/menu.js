@@ -90,6 +90,39 @@ function calcMode(emotionList){
 
 
 async function mainLoop(timeStamp, duration, emotions, tab, avgEmotions, avgEmotionIndex){
+
+    // 0. Video specs
+    var paused = await chrome.tabs.sendMessage(tab.id, { 
+      action: 'checkPaused', 
+    });
+    // if (paused){
+    //   console.log("paused");
+    //   console.log(timeStamp);
+    //   console.log(duration);
+    // }
+    // var presentAd = await chrome.tabs.sendMessage(tab.id, { 
+    //   action: 'checkAd', 
+    // });
+    // if (presentAd){
+    //   console.log("presentAd");
+    // }
+    if (paused){
+      displayEmotion(tab, 'Neutral', 'Neutral', true);
+      setTimeout(async function () {
+        vidEnded = await chrome.tabs.sendMessage(tab.id, { 
+          action: 'checkEnded', 
+        });
+        console.log(vidEnded);
+        if (vidEnded){
+          logEmotion(tab, emotions)
+        } else {
+          mainLoop(timeStamp, duration, emotions, tab, avgEmotions, avgEmotionIndex);
+        }
+      }, 1000)
+    } else {
+
+    
+    
     
     // 1. Set Defaults
     var calculatedEmotion;
@@ -147,24 +180,9 @@ async function mainLoop(timeStamp, duration, emotions, tab, avgEmotions, avgEmot
 
     // 5. recursion
     timeStamp += 1
-    if (timeStamp > duration) {
+    if (timeStamp >= Math.floor(duration)) {
         console.log("Done");
-        setTimeout(async function () {
-          const viewData = new FormData;
-          viewData.append("user", currentUser);
-          viewData.append("video", tab.url);
-          viewData.append("emotions", JSON.stringify(emotions));
-
-          response = await fetch('https://api-cowatch.onrender.com/logEmotion', {
-          method: "POST",
-          headers: {
-            "Content-Type":"application/x-www-form-urlencoded"
-          },
-          body: new URLSearchParams(viewData).toString()
-          })
-          confirmation = await response.json();
-          console.log(confirmation);
-        }, 1000)
+        setTimeout(logEmotion(tab, emotions), 1000)
     }
     else {
         setTimeout(function () {
@@ -173,6 +191,24 @@ async function mainLoop(timeStamp, duration, emotions, tab, avgEmotions, avgEmot
         }, 1000)
         
     }
+  }
+}
+
+async function logEmotion(tab, emotions) {
+  const viewData = new FormData;
+  viewData.append("user", currentUser);
+  viewData.append("video", tab.url);
+  viewData.append("emotions", JSON.stringify(emotions));
+
+  response = await fetch('https://api-cowatch.onrender.com/logEmotion', {
+  method: "POST",
+  headers: {
+    "Content-Type":"application/x-www-form-urlencoded"
+  },
+  body: new URLSearchParams(viewData).toString()
+  })
+  confirmation = await response.json();
+  console.log(confirmation);
 }
 
 async function displayEmotion(tab, calculatedEmotion, avgEmotion, ownEmotions){
@@ -196,12 +232,13 @@ async function displayEmotion(tab, calculatedEmotion, avgEmotion, ownEmotions){
 
 
 
-function main() {
+async function main() {
   var currentFrame;
   var playing = false;
   var loop;
   var emotions = [];
   var started = false;
+  const [tab] = await chrome.tabs.query({ active: true });
 
   navigator.mediaDevices.getUserMedia({video: true})
     .then(mediaStream => {
@@ -214,19 +251,23 @@ function main() {
 
   const playButton = document.querySelector('.playPause');
   playButton.addEventListener('click', async () => {
-    const [tab] = await chrome.tabs.query({ active: true });
-
-    document.getElementById("rad1").disabled = true;
-    document.getElementById("rad2").disabled = true;
-
-    overlay = await chrome.tabs.sendMessage(tab.id, { action: 'createOverlay'});
-
-    duration = await chrome.tabs.sendMessage(tab.id, { action: 'getDuration' });
-    avgEmotions = await videoStats(tab, duration);
-
-    
     videoStart = await chrome.tabs.sendMessage(tab.id, { action: 'playPause' });
-    loggedEmotions = mainLoop(0, duration, emotions, tab, avgEmotions, 0);
+    if (!started){
+      
+
+      document.getElementById("rad1").disabled = true;
+      document.getElementById("rad2").disabled = true;
+
+      overlay = await chrome.tabs.sendMessage(tab.id, { action: 'createOverlay'});
+
+      duration = await chrome.tabs.sendMessage(tab.id, { action: 'getDuration' });
+      avgEmotions = await videoStats(tab, duration);
+      started = true;
+      loggedEmotions = mainLoop(0, duration, emotions, tab, avgEmotions, 0);
+    }
+    
+    
+    
 
     
   })

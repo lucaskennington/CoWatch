@@ -5,9 +5,9 @@ require("node:dns/promises").setServers(["1.1.1.1", "8.8.8.8"]);
 
 const app = express();
 const port = 3000;
-const User = require('../database/models/user');
-const Video = require('../database/models/video');
-const View = require('../database/models/view');
+const User = require('./database/models/user');
+const Video = require('./database/models/video');
+const View = require('./database/models/view');
 
 var jsonParser = bodyParser.json()
 var urlencodedParser = bodyParser.urlencoded({extended: true})

@@ -1,1 +1,0 @@
-mongodb+srv://lucaskennington_db_user:OIPPYdmML4jFxF6T@cowatch.i8hiekq.mongodb.net/?appName=CoWatch

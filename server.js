@@ -5,9 +5,9 @@ require("node:dns/promises").setServers(["1.1.1.1", "8.8.8.8"]);
 
 const app = express();
 const port = 3000;
-const User = require('./models/user');
-const Video = require('./models/video');
-const View = require('./models/view');
+const User = require('../database/models/user');
+const Video = require('../database/models/video');
+const View = require('../database/models/view');
 
 var jsonParser = bodyParser.json()
 var urlencodedParser = bodyParser.urlencoded({extended: true})
@@ -17,26 +17,29 @@ app.use(urlencodedParser);
 app.use(express.json())
 
 
-
+// MongoDB node.js connection sourced from [1]
 const mongoose = require('mongoose');
 mongoose.connect('mongodb+srv://lucaskennington_db_user:OIPPYdmML4jFxF6T@cowatch.i8hiekq.mongodb.net/CoWatch?appName=CoWatch');
- 
+ // and modified with help from [2]
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 db.once('open', () => {
     console.log('Connected to MongoDB');
 });
 
+// Find mode from array
+// Function sourced from GeeksForGeeks at [3]
 function calcMode(emotionList){
   const freq = {};
-  emotionList.forEach(emotion => {
+  emotionList.forEach(emotion => { // calculate frequency of emotions
     freq[emotion] = (freq[emotion] || 0) + 1;
   });
 
   let modes = [];
   let highest = 0;
 
-  for(const emotion in freq){
+
+  for(const emotion in freq){ // find highest frequency
     const thisFreq = freq[emotion];
     if (thisFreq > highest){
       highest = thisFreq;
@@ -47,32 +50,30 @@ function calcMode(emotionList){
     }
   }
   if (modes.length > 1){
-    return modes[Math.floor(Math.random() * modes.length)];
+    return modes[Math.floor(Math.random() * modes.length)]; // choose random mode to display
   }
   else {
     return modes[0];
   }
 }
 
+// Database save from GeeksForGeeks [3]
 app.post('/logEmotion', async(req, res) => {
   const viewData = req.body;
 
-  console.log(viewData);
 
   const viewUser = viewData.user;
   const viewVideo = viewData.video;
   const viewEmotions = viewData.emotions;
   var viewWatchCount = 0
 
-  console.log(viewUser);
-  console.log(viewEmotions);
-  // console.log(viewEmotions.length)
-
+  // create emotion list from JSON data
   emotionList = [];
   JSON.parse(viewEmotions).forEach((entry) => {
     emotionList.push({timestamp:entry["timestamp"], emotion:entry["emotion"]})
   });
 
+  // create entry from model
   db.collection("views").countDocuments({user: viewUser, video: viewVideo})
   .then(result =>
     {
@@ -84,6 +85,7 @@ app.post('/logEmotion', async(req, res) => {
         watchCount: viewWatchCount,
         emotions: emotionList
       })
+      // save to database
       view.save()
       .then(result => res.send({success: true, title: title}))
       .catch(error => res.send({success: false, title: error}))
@@ -91,7 +93,8 @@ app.post('/logEmotion', async(req, res) => {
   .catch(error => console.log(error));
 })
 
-
+// save video to database
+// Database save from GeeksForGeeks [3]
 app.post('/newVideo', async(req, res) => {
   const videoData = req.body;
   const vidUrl = videoData.url;
@@ -109,10 +112,13 @@ app.post('/newVideo', async(req, res) => {
 })
 
 
+// save user to database
+// Database save from GeeksForGeeks [4]
 app.post('/newUsers', async (req, res) => {
   const userData = req.body;
   const firstname = userData.firstname;
   const username = userData.username;
+  // hash password
   const password = await bcrypt.hash(userData.password, 8);
 
   const user = new User({
@@ -120,30 +126,30 @@ app.post('/newUsers', async (req, res) => {
     userName: username,
     password:password
   })
-
   console.log(db.collection("users").find({userName: username}))
   user.save()
   .then(result => res.send({success: true, currentUser: username}))
   .catch(error => res.send({success: false, errorDetail: error}))
 })
 
+
 app.post('/existingViews', async (req, res) => {
   const videoData = req.body;
   const videoTitle = videoData.videoTitle;
 
+  // find all views for given video
+  // find function from MongoDB docs [5]
   dbSearch = db.collection("views").find({video: videoTitle}, {user: 0, video: 0, watchCount: 0, emotions: 1})
   dbSearch.toArray().then(allEmotions => {
-    console.log("67")
-    console.log(allEmotions);
-    console.log("67")
+
     if (allEmotions.length > 0){
-      console.log(allEmotions[0]);
 
       justEmotions = [];
       for (i = 0; i < allEmotions.length; i++){
         justEmotions.push(allEmotions[i]['emotions']);
       }
 
+      // sort into list of emotions organised by timestamp
       emotionByTime = [];
       for(i = 0; i < justEmotions[0].length; i++){
         emotionByTime.push([]);
@@ -156,15 +162,15 @@ app.post('/existingViews', async (req, res) => {
         }
       }
 
+      // find modal average emotions
       avgEmotions = [];
       for (i = 0; i < emotionByTime.length; i++){
         avgEmotions.push(calcMode(emotionByTime[i]));
       }
 
-      console.log(avgEmotions);
       res.send(JSON.stringify(avgEmotions));
     } else {
-      console.log("none");
+
       res.send(JSON.stringify("none"));
     }
     
@@ -177,7 +183,7 @@ app.post('/existingViews', async (req, res) => {
 })
 
 
-
+// find existing user
 app.post('/existingUsers', async (req, res) => {
   const userData = req.body;
   const username = userData.username;
@@ -187,6 +193,7 @@ app.post('/existingUsers', async (req, res) => {
   .then(result =>
     {
       console.log(username);
+      // hash password
       bcrypt.compare(password, result.password, (err, succ) => {
         if (err) {
           res.send({success: false, errorDetail: "Error comparing passwords"});
@@ -207,3 +214,21 @@ app.post('/existingUsers', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 })
+
+// ---------------------------------------------------------------------------------------------------
+// **CODE BIBLIOGRAPHY**
+
+// [1] Wu, MJ (2025) - "How to Build a Google Chrome Extension with React, Next.js, and MongoDB", Medium.com
+// Available at https://medium.com/@JordanWuInTheHouse/how-to-build-a-google-chrome-extension-with-react-next-js-and-mongodb-912e1d46f49e
+
+// [2] User 'robertklep' (2013) - "Mongoose Connection", StackOverflow
+// Available at https://stackoverflow.com/questions/20360531/mongoose-connection
+
+// [3] GeeksForGeeks - "Find Mode of an Array using JavaScript" - last updated 2025-07-23
+// Available at https://www.geeksforgeeks.org/javascript/find-mode-of-an-array-using-javascript/
+
+// [4] GeeksForGeeks - "Mongoose save() Method" - last updated 2025-10-01
+// Available at https://www.geeksforgeeks.org/mongodb/mongoose-save-function/
+
+// [5] MongoDB Docs - "db.collection.find() (mongosh method)"
+// Available at https://www.mongodb.com/docs/manual/reference/method/db.collection.find/?msockid=149ffc818964650a3443ea74880064f3

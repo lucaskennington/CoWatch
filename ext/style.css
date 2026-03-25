@@ -1,16 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+/* https://www.youtube.com/watch?v=bVl5_UdcAy0 */
+
+
 :root{
-    --accent-color: #8672FF;
+    --accent-color: #d400ff;
     --base-color: white;
-    --text-color: #2E2B41;
-    --input-color: #F3F0FF;
+    --text-color: #412b3d;
+    --input-color: #fff0ff;
 }
 *{
     margin: 0;
     padding: 0;
 }
 html{
-    font-family: Montserrat, Segoe UI, sans-serif;
     font-size: 12pt;
     color: var(--text-color);
     text-align: center;
@@ -18,9 +19,9 @@ html{
 body{
     min-width: 200vh;
     min-height: 100vh;
-    background-image: url(background.jpg);
+    /* background-image: url(background.jpg);
     background-size: cover;
-    background-position: right;
+    background-position: right; */
     overflow: hidden;
 }
 .wrapper{

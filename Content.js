@@ -1,58 +1,39 @@
 var started = false;
 
-// const style = document.createElement('style');
-// style.textContent = "#overlay {position: fixed; display: none; width: 100%; height: 100%; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0); z-index: 9999; pointer-events: none; clip-path: polygon(0 0, 0 var(--1), var(--2) var(--1), var(--3) var(--1), var(--3) var(--4), var(--2) var(--4), var(--2) var(--1), 0 var(--1), 0 100%, 100% 100%, 100% 0);}";
-
+// colours used by overlay, mapped to emotions
 const emotion_colours = new Map ([
-  ['Happy','rgba(255, 242, 3, 0.25)'],
-  ['Sad','rgba(53, 3, 255, 0.1)'],
-  ['Anger','rgba(255, 3, 3, 0.25)'],
-  ['Surprise','rgba(255, 3, 251, 0.25)'],
-  ['Disgust','rgba(27, 186, 6, 0.25)'],
-  ['Fear','rgba(143, 14, 194, 0.25)'],
+  ['Happy','rgba(255, 242, 3, 0.25)'], //fff20340
+  ['Sad','rgba(0, 4, 248, 0.33)'], //0004f854
+  ['Anger','rgba(255, 3, 3, 0.25)'], //ff030340
+  ['Surprise','rgba(255, 3, 251, 0.25)'], //ff03fb40
+  ['Disgust','rgba(27, 186, 6, 0.25)'], //1bba0640
+  ['Fear','rgba(143, 14, 194, 0.47)'], //8f0ec240
   ['Neutral','rgba(0, 0, 0, 0)']
 ]);
 
-const emotion_colours_solid = new Map ([
-  ['Happy','rgb(255, 242, 3)'],
-  ['Sad','rgb(53, 3, 255)'],
-  ['Anger','rgb(255, 3, 3)'],
-  ['Surprise','rgb(255, 3, 251)'],
-  ['Disgust','rgb(27, 186, 6)'],
-  ['Fear','rgb(143, 14, 194)'],
-  ['Neutral','rgb(255, 255, 255)']
-]);
+// const emotion_colours_solid = new Map ([
+//   ['Happy','rgb(255, 242, 3)'],
+//   ['Sad','rgb(53, 3, 255)'],
+//   ['Anger','rgb(255, 3, 3)'],
+//   ['Surprise','rgb(255, 3, 251)'],
+//   ['Disgust','rgb(27, 186, 6)'],
+//   ['Fear','rgb(143, 14, 194)'],
+//   ['Neutral','rgb(255, 255, 255)']
+// ]);
 
 // var styleElement = document.createElement('style');
 // styleElement.setAttribute('data-yt-extension', 'true');
-
-
-function changeColour(emotion){
-  newColour = emotion_colours_solid.get(emotion);
-  console.log("Emotion received");
-  console.log(newColour);
-  document.querySelector('ytd-app').style.setProperty('background-color', newColour, 'important');
-}
 
 function videoDetails(){
   const titleElement = document.getElementsByTagName("title")[0].innerHTML;
   return titleElement;
 }
 
-function timeCheck() {
-  const videoElement = document.querySelector('video');
-  if (videoElement) {
-    currentTime = videoElement.currentTime;
-    finishedStatus = (currentTime >= videoElement.duration)
-    return {finished: finishedStatus, runtime: currentTime}
-  }
-}
-
 function playVideo() {
-  // get the video element, and the skip button that YouTube renders
+  // get the video element [1]
   const videoElement = document.querySelector('video');
-  const skipButton = document.querySelector('button.ytp-ad-skip-button-modern');
 
+  // play / pause 
   if (videoElement) {
     if (videoElement.paused){
       videoElement.play();
@@ -62,21 +43,36 @@ function playVideo() {
       videoElement.pause();
     }
   }
+  // return if video is paused
   return {pauseStatus: videoElement.paused, currentRunime: videoElement.currentTime, videoDuration: videoElement.duration};
 }
 
-function fullScreenVideo(){
-  const videoElement = document.querySelector('video');
-  videoElement.requestFullscreen()
+function overlayTemplate(id, this_top, this_left, this_width, this_height){
+  // create overlay [3]
+  overlay = document.createElement("div");
+  overlay.id = id;
+  Object.assign(overlay.style, {
+    position: 'fixed',
+    top: this_top,
+    left: this_left,
+    width: this_width,
+    height: this_height,
+    backgroundColor: 'rgba(0, 0, 0, 0)',
+    zIndex: '9999',          // On top of all other elements
+    display: 'flex',         // Center content if needed
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: '#fff',
+    fontSize: '24px',
+    cursor: 'pointer'
+  })
+  return overlay;
 }
 
 function createOverlay(){
   const videoElement = document.querySelector('video');
+  // get video dimensions [2]
   const rect = videoElement.getBoundingClientRect();
-  console.log(rect.top);
-  console.log(rect.bottom);
-  console.log(rect.left);
-  console.log(rect.right);
 
   rectTop = rect.top.toString();
   rectBottom = rect.bottom.toString();
@@ -85,99 +81,14 @@ function createOverlay(){
   rectWidth = rect.width.toString();
   rectHeight = rect.height.toString();
 
-
-  const overlay = document.createElement("div");
-  overlay.id = 'overlay1';
-  Object.assign(overlay.style, {
-    position: 'fixed',
-    top: '0',
-    left: '0',
-    width: '45px',
-    height: '493px',
-    backgroundColor: 'rgba(0, 0, 0, 0)',
-    zIndex: '9999',          // On top of all other elements
-    display: 'flex',         // Center content if needed
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#fff',
-    fontSize: '24px',
-    cursor: 'pointer'
-  })
-
-  //update to user display
-  overlay.style.width = rectLeft + "px";
-  overlay.style.height = rectBottom + "px";
+  // build overlays around existing video
+  const overlay = overlayTemplate('overlay1', '0', '0', rectLeft + "px", rectBottom + "px");
+  const overlay2 = overlayTemplate('overlay2', '0', rectLeft + "px", rectWidth + "px", rectTop + "px");
+  const overlay3 = overlayTemplate('overlay3', rectBottom + "px", '0', rectRight + "px", '100%');
+  const overlay4 = overlayTemplate('overlay4', '0', rectRight + "px", '100%', '100%');
 
 
-  const overlay2 = document.createElement("div");
-  overlay2.id = 'overlay2';
-  Object.assign(overlay2.style, {
-    position: 'fixed',
-    top: '0',
-    left: '45px',
-    width: '756px',
-    height: '68px',
-    backgroundColor: 'rgba(0, 0, 0, 0)',
-    zIndex: '9999',          // On top of all other elements
-    display: 'flex',         // Center content if needed
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#fff',
-    fontSize: '24px',
-    cursor: 'pointer'
-  })
-
-  overlay2.style.left = rectLeft + "px";
-  overlay2.style.width = rectWidth + "px";
-  overlay2.style.height = rectTop + "px";
-
-  const overlay3 = document.createElement("div");
-  overlay3.id = 'overlay3';
-  Object.assign(overlay3.style, {
-    position: 'fixed',
-    top: '493px',
-    left: '0',
-    width: '801px',
-    height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0)',
-    zIndex: '9999',          // On top of all other elements
-    display: 'flex',         // Center content if needed
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#fff',
-    fontSize: '24px',
-    cursor: 'pointer'
-  })
-
-  overlay3.style.top = rectBottom + "px";
-  overlay3.style.width = rectRight + "px";
-
-  const overlay4 = document.createElement("div");
-  overlay4.id = 'overlay4';
-  Object.assign(overlay4.style, {
-    position: 'fixed',
-    top: '0',
-    left: '801px',
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0, 0, 0, 0)',
-    zIndex: '9999',          // On top of all other elements
-    display: 'flex',         // Center content if needed
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: '#fff',
-
-    cursor: 'pointer'
-  })
-
-  overlay4.style.left = rectRight + "px";
-
-
-  // overlay.style.clipPath = "polygon(0 0, 0 ${rect.top}, ${rect.left} ${rect.top}, ${rect.right} ${rect.top}, ${rect.right} ${rect.bottom}, ${rect.left} ${rect.bottom}, ${rect.left} ${rect.top}, 0 ${rect.top}, 0 100%, 100% 100%, 100% 0)"
-  // console.log(overlay.style.clipPath);
-  // console.log(rect.width);
-  // console.log(rect.height);
-
+  // display overlay
   document.body.appendChild(overlay);
   document.body.appendChild(overlay2);
   document.body.appendChild(overlay3);
@@ -188,9 +99,11 @@ function createOverlay(){
 }
 
 function displayEmotion(emotion){
-  console.log(emotion);
+
+  // get colour of emotion from Map
   var colour = emotion_colours.get(emotion);
 
+  // change overlay colour
   overlay = document.getElementById('overlay1');
   Object.assign(overlay.style, {
     backgroundColor: colour
@@ -215,45 +128,51 @@ function displayEmotion(emotion){
   console.log("overlay updated");
 }
 
-function checkPaused(){
-  const videoElement = document.querySelector('video');
-  return videoElement.paused;
-}
-
+// return duration of video
 function getDuration(){
   const videoElement = document.querySelector('video');
   return videoElement.duration;
 }
 
 function main() {
-  // listen to messages from the Chrome Extension APIs
+  // wait for request
   chrome.runtime.onMessage.addListener(
     async (request, sender, sendResponse) => {
-      if (request.action == 'createOverlay'){
-        //fullScreenVideo();
-        createOverlay();
-        sendResponse({})
+      switch (request.action){
+        // request for video details
+        case 'videoDetails':
+          sendResponse(videoDetails());
+          break;
+        // request for video duration
+        case 'getDuration':
+          sendResponse(getDuration());
+          break;
+        // request to create overlay, send empty response
+        case 'createOverlay':
+          createOverlay();
+          sendResponse({});
+          break;
+        // request to start video, send video specs
+        case 'playPause':
+          const videoSpecs = (playVideo());
+          sendResponse(videoSpecs);
+          break;
+        // request to display emotion, send confirmation
+        case 'displayEmotion':
+          displayEmotion(request.emotion);
+          sendResponse("Emotion displayed");
+          break;
+        default:
+          sendResponse("Instruction not recognised");
       }
-      if (request.action === 'playPause') {
-        const videoSpecs = (playVideo());
-        sendResponse(videoSpecs);
-      }
-      if (request.action === 'displayEmotion'){
-        console.log('a');
-        console.log(request.emotion);
-        console.log('b');
-        displayEmotion(request.emotion);
-        sendResponse("Emotion displayed");
-      }
-      if (request.action === 'timeCheck'){
-        sendResponse(timeCheck());
-      }
-      if (request.action === 'videoDetails'){
-        sendResponse(videoDetails());
-      }
-      if (request.action === 'checkPaused'){
-        sendResponse(checkPaused());
-      }
+      
+
+      
+
+      
+
+
+      // request for video duration
       if (request.action === 'getDuration'){
         sendResponse(getDuration());
       }
@@ -262,3 +181,18 @@ function main() {
 }
 
 main();
+
+// ---------------------------------------------------------------------------------------------------
+// **CODE BIBLIOGRAPHY**
+
+// [1] w3schools - HTML DOM Document querySelector() - last accessed 2026-03-22
+// Available at https://www.w3schools.com/jsref/met_document_queryselector.asp
+
+// [2] Mozilla MDN - "Element: getBoundingClientRect() method" - last updated 2025-10-30
+// Available at https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+
+// [3] w3schools - How TO - Full screen Overlay Navigation - last accessed 2026-03-22
+// Available at https://www.w3schools.com/howto/howto_js_fullscreen_overlay.asp
+
+// [4] w3schools - JavaScript Switch Statement - last accessed 2026-03-22
+// Available at https://www.w3schools.com/js/js_switch.asp

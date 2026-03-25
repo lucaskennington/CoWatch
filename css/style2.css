@@ -1,0 +1,41 @@
+
+:root{
+    --accent-color: #868686;
+    --base-color: white;
+    --text-color: #3e3e3e;
+    --input-color: #ededed;
+}
+/* *{
+    margin: 0;
+    padding: 0;
+} */
+html{
+    font-size: 12pt;
+    color: var(--text-color);
+    text-align: center;
+}
+
+h1{
+    font-size: 24pt;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+button{
+    margin-top: 10px;
+    border: none;
+    border-radius: 1000px;
+    padding: .85em 4em;
+    background-color: var(--accent-color);
+    color: var(--base-color);
+    font: inherit;
+    font-weight: 600;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: 150ms ease;
+}
+
+label{
+    font: inherit;
+    color: var(--accent-color);
+}

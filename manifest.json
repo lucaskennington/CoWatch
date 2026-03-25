@@ -1,19 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "CoWatch",
+  "name": "EmoFeedback",
   "version": "1.0",
-  "description": "Watch with emotions",
+  "description": "Watch with emotional feedback",
   "action": {
-    "default_popup": "ext/signup.html"
+    "default_popup": "html/signup.html"
   },
-  "permissions": ["storage", "activeTab", "scripting", "contentSettings"],
-  "host_permissions": [
-    "http://localhost:3000/*",
-    "http://127.0.0.1:3000/*"
-  ],
+  "permissions": ["storage", "activeTab", "scripting"],
+
   "content_scripts": [
     {
-      "js": ["content.js"],
+      "js": ["js/Content.js"],
       "matches": ["<all_urls>"],
       "run_at": "document_end"
     }

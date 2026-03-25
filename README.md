@@ -22,3 +22,12 @@ USAGE INSTRUCTIONS
 PRIVACY NOTICE
 The nature of this project means that it will take pictures of you using your computer's camera. These pictures are sent to a server running on the University of Glasgow server space, where they are fed into the LibreFace model to determine what emotion they convey. Following this, they are deleted. No facial images are stored in permanent storage at any point in the process.
 The database logs your username, the URL of the video you have watched and a list of calculated emotions. No other identifiable information is stored and you are free to use false usernames / display names when signing up.
+
+NOTICE FOR PARTICIPANTS IN USER STUDY
+1. Use of this software does not incur any risks greater than normal working activity.
+2. The software can be run on standard hardware (laptop with camera).
+3. You have been directed to this repository only after explicitly consenting to take part in this study and share relevant research data, and after being given my contact details.
+4. You have not been offered any incentive to participate in the study.
+5. The information outlined in the privacy notice explains what data is collected and how. No other data is collected and the program performs no other purpose beyond that which you have been shown.
+6. Participants have the right to withdraw and have their research data daleted at any time.
+7. All data is stored under the username you have created for the system, and reported on in an anonymous form.

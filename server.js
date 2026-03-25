@@ -174,11 +174,20 @@ app.post('/existingViews', async (req, res) => {
       res.send(JSON.stringify("none"));
     }
     
-  }).catch(error => {
-    console.log("error");
-    res.send(JSON.stringify("none"));
+    console.log("b");
+    if (allEmotions.length > 0){
+      listLength = allEmotions[0].length
+      for (let i = 0; i < listLength; i++){
+        finalEmotions.push([]);
+        allEmotions.forEach((elt) =>
+          finalEmotions[i].push(elt[i]));
+        }
+      console.log(finalEmotions);
+      res.send(JSON.stringify(finalEmotions));
   }
-  );
+  
+  }
+  )
   
 })
 

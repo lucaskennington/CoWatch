@@ -1,0 +1,10 @@
+if !started:
+    start
+    currentTime = 0
+
+loop
+    if currentTime <= duration:
+        get emotion
+        append {currentTime: Emotions} to emotions
+    else
+        create view data

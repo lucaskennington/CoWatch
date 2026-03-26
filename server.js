@@ -20,6 +20,7 @@ app.use(express.json())
 // MongoDB node.js connection sourced from [1]
 const mongoose = require('mongoose');
 mongoose.connect('mongodb+srv://lucaskennington_db_user:OIPPYdmML4jFxF6T@cowatch.i8hiekq.mongodb.net/CoWatch?appName=CoWatch');
+
  // and modified with help from [2]
 const db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
